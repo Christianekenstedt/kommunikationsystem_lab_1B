@@ -11,15 +11,15 @@
 
 <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="400.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="chatclient.Controller.Controller">
    <center>
-      <TextArea prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER" />
+      <TextArea fx:id="outputArea" editable="false" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER" />
    </center>
    <bottom>
       <BorderPane prefHeight="0.0" prefWidth="600.0" BorderPane.alignment="CENTER">
          <right>
-            <Button fx:id="sendBtn" alignment="BOTTOM_RIGHT" contentDisplay="TEXT_ONLY" defaultButton="true" mnemonicParsing="false" onAction="#sendBtnPressed" style="-fx-alignment: right;" text="Send" textAlignment="CENTER" BorderPane.alignment="CENTER" />
+            <Button fx:id="sendBtn" alignment="BOTTOM_RIGHT" contentDisplay="TEXT_ONLY" defaultButton="true" mnemonicParsing="false" onAction="#sendBtnPressed" style="-fx-alignment: right;" text="Connect" textAlignment="CENTER" BorderPane.alignment="CENTER" />
          </right>
          <center>
-            <TextField BorderPane.alignment="CENTER" />
+            <TextField fx:id="inputField" promptText="Server address" BorderPane.alignment="CENTER" />
          </center>
       </BorderPane>
    </bottom>

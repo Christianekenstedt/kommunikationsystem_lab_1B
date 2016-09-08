@@ -3,6 +3,7 @@ package chatclient.Controller;
 /**
  * Created by chris on 2016-09-08.
  */
+import chatclient.Model.ChatClient;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -19,14 +20,21 @@ public class StartUpController {
     private Button connectBtn;
 
     @FXML
-    void connectBtnPressed(ActionEvent event) throws IOException {
+    void connectBtnPressed(ActionEvent event) throws Exception {
+
         Stage chatStage = new Stage();
+
         Parent root = FXMLLoader.load(getClass().getResource("../View/chatclient.fxml"));
+
         chatStage.setTitle("Chat Client");
         chatStage.setScene(new Scene(root, 400, 400));
         chatStage.show();
+
         Stage primaryStage = (Stage) connectBtn.getScene().getWindow();
         primaryStage.close();
+
+
+
     }
 
 }
