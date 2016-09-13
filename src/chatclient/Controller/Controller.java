@@ -31,7 +31,7 @@ public class Controller {
             }
 
         }else{
-            cc.send();
+            cc.send(inputField.getText());
         }
 
     }

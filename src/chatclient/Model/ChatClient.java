@@ -1,5 +1,6 @@
 package chatclient.Model;
 
+import javafx.geometry.NodeOrientation;
 import javafx.scene.Scene;
 import javafx.scene.control.TextArea;
 
@@ -56,7 +57,7 @@ public class ChatClient {
         }
     }
 
-    public void send() {
+    public void send(String message) {
 
     }
 }
