@@ -22,6 +22,7 @@ public class ChatServer {
             cmdManager = new CommandManager();
             clients = new ArrayList<>();
             serverSocket = new ServerSocket(PORT);
+            listening = true;
             //Start listending after clients and thread it up.
             while(listening){
                 System.out.println("Waiting for client to connect...");
