@@ -30,26 +30,33 @@ public class ChatClient {
         if (serverName == null) System.exit(0);
 
         try{
+            outputArea.setText("Connecting to "+serverName+"...");
             InetAddress serverAddress = InetAddress.getByName(serverName);
             socket = new Socket(serverAddress, PORT_SERVER);
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             String input = in.readLine();
-            System.out.println(input);
-            outputArea.setText(input);
-        }finally{
-            try{
-                if (socket!=null) socket.close();
+            outputArea.appendText("\n"+input);
+        }finally {
+            try {
+                if (socket != null) {
+                    socket.close();
+                    outputArea.appendText("\n"+"Connection closed.");
+                }
+
+            } catch (Exception e) {
+                System.out.println(e);
+                outputArea.appendText("\n"+"Connection lost.");
+            } finally {
                 try {
                     if (in != null) in.close();
-                }catch (Exception e){
+                } catch (Exception e) {
                     System.out.println(e);
                 }
-            }catch (Exception e){
-                System.out.println(e);
             }
         }
     }
 
     public void send() {
+
     }
 }
