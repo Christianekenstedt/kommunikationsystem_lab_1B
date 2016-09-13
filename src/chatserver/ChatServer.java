@@ -1,5 +1,7 @@
 package chatserver;
 
+import commands.CommandManager;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -13,9 +15,11 @@ public class ChatServer {
     ServerSocket serverSocket = null;
     ArrayList<ClientHandler> clients = null;
     private boolean listening = false;
+    private CommandManager cmdManager = null;
 
     public void start() throws IOException{
         try{
+            cmdManager = new CommandManager();
             clients = new ArrayList<>();
             serverSocket = new ServerSocket(PORT);
             //Start listending after clients and thread it up.
@@ -68,6 +72,10 @@ public class ChatServer {
         for(ClientHandler ch : clients){
             ch.send(msg);
         }
+    }
+
+    public CommandManager getCommandManager(){
+        return cmdManager;
     }
 
     public static void main(String[] args) throws IOException{

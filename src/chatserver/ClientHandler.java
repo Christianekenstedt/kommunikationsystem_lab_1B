@@ -98,6 +98,21 @@ public class ClientHandler extends Thread {
     }
 
     /**
+     * Updated with a new command-system. Makes commands dynamic
+     * @param message
+     */
+    private void processMessageNew(String message){
+        String[] split = message.split(" ");
+
+        if(server.getCommandManager().tryExecuteCommand(split[0], server, this, message)){
+            //it was a command
+        }else{
+            //it was a normal text
+            server.broadcast(message);
+        }
+    }
+
+    /**
      * Send a string to client.
      * @param msg The message to be sent.
      */
