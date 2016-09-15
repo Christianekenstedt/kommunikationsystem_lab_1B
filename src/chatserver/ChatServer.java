@@ -1,5 +1,6 @@
 package chatserver;
 
+import com.sun.deploy.util.SessionState;
 import commands.CommandManager;
 
 import java.io.IOException;
@@ -12,8 +13,8 @@ import java.util.ArrayList;
  */
 public class ChatServer {
     private static final int PORT = 12345;
-    ServerSocket serverSocket = null;
-    ArrayList<ClientHandler> clients = null;
+    private ServerSocket serverSocket = null;
+    private ArrayList<ClientHandler> clients = null;
     private boolean listening = false;
     private CommandManager cmdManager = null;
 
@@ -22,19 +23,27 @@ public class ChatServer {
             cmdManager = new CommandManager();
             clients = new ArrayList<>();
             serverSocket = new ServerSocket(PORT);
+
             listening = true;
-            //Start listending after clients and thread it up.
+            //Start listening for clients
             while(listening){
                 System.out.println("Waiting for client to connect...");
                 Socket clientSocket = serverSocket.accept();
-                System.out.println("Accepted client from "+clientSocket.getInetAddress());
+                System.out.println("Accepted client from " + clientSocket.getInetAddress());
                 ClientHandler clientHandler = new ClientHandler(clientSocket, this);
                 clientHandler.start();
                 clients.add(clientHandler);
             }
         }finally{
             try{
-                if(serverSocket != null) serverSocket.close();
+                disconnectAll();
+            }catch(Exception e){
+                System.out.println(e.getMessage());
+            }
+            try{
+                if(serverSocket != null){
+                    serverSocket.close();
+                }
             }catch (Exception e){
                 System.out.println(e);
             }
@@ -52,7 +61,18 @@ public class ChatServer {
             clientList += ch.getNickname() + " \n";
         }
 
-        target.send(clientList);
+        try {
+            target.send(clientList);
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+            disconnectClient(target);
+        }
+    }
+
+    public synchronized void disconnectAll(){
+        for(ClientHandler ch : clients){
+            ch.disconnect();
+        }
     }
 
     /**
@@ -70,9 +90,21 @@ public class ChatServer {
      * @param msg
      */
     public synchronized void broadcast(String msg){
+        ArrayList<ClientHandler> toDisconnect = new ArrayList<>();
+
         for(ClientHandler ch : clients){
-            ch.send(msg);
+            try {
+                ch.send(ch.getNickname() + ": " + msg);
+            } catch (IOException e) {
+                e.printStackTrace();
+                toDisconnect.add(ch);
+            }
         }
+
+        for(ClientHandler ch : toDisconnect){
+            ch.disconnect();
+        }
+
     }
 
     public CommandManager getCommandManager(){

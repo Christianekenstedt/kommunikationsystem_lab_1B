@@ -19,7 +19,7 @@ public class ClientHandler extends Thread {
     private ChatServer server = null;
     private boolean connected = false;
     private BufferedReader in = null;
-    private String nickName = "Unnamed";
+    private String nickName = "unnamed";
 
     public ClientHandler(Socket socket, ChatServer server){
         this.socket = socket;
@@ -35,23 +35,15 @@ public class ClientHandler extends Thread {
             this.in = new BufferedReader(
                     new InputStreamReader(socket.getInputStream())
             );
+
             this.out.println("Welcome "+socket.getInetAddress() + ":"+ socket.getPort());
 
-        } catch (IOException e) {
-            System.out.println(e);
+            receive();
 
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
         } finally {
-            try{
-                if(socket != null) socket.close();
-            } catch (IOException e) {
-                System.out.println(e);
-            } finally {
-                try {
-                    if (out != null) out.close();
-                }catch (Exception ex){
-                    System.out.println(ex);
-                }
-            }
+            server.disconnectClient(this);
         }
     }
 
@@ -73,39 +65,32 @@ public class ClientHandler extends Thread {
                 processMessage(received);
             }
         }catch(Exception e){
-
+            System.out.println("Error when receiving from client: " + getNickname());
         }finally {
             server.disconnectClient(this);
         }
     }
 
-    private void processMessage(String message){
-        String[] split = message.split(" ");
-        switch(split[0]){
-            //commands
-            case "/quit":
-                server.disconnectClient(this);
-                break;
-            case "/who":
-                //send all user names currently connected
-                break;
-            default:
-                server.broadcast(message);
-                //broadcast message
-                break;
-
-        }
-    }
 
     /**
      * Updated with a new command-system. Makes commands dynamic
      * @param message
      */
-    private void processMessageNew(String message){
+    private void processMessage(String message){
         String[] split = message.split(" ");
 
-        if(server.getCommandManager().tryExecuteCommand(split[0], server, this, message)){
-            //it was a command
+        if(message.charAt(0) == '/'){
+            if(server.getCommandManager().tryExecuteCommand(split[0], server, this, message)){
+                System.out.println("Command executed.");
+            }else{
+                try{
+                    send("Unknown command.");
+                }catch(IOException e){
+                    System.out.println("Could not send to client " + getNickname());
+                }
+
+            }
+
         }else{
             //it was a normal text
             server.broadcast(message);
@@ -116,7 +101,7 @@ public class ClientHandler extends Thread {
      * Send a string to client.
      * @param msg The message to be sent.
      */
-    public synchronized void send(String msg){
+    public synchronized void send(String msg)throws IOException{
         out.println(msg);
     }
 
