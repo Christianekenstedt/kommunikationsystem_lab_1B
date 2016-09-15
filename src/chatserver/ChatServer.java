@@ -50,24 +50,19 @@ public class ChatServer {
         }
     }
 
-    /**
-     * Sends list of all connected clients to the client who requested it.
-     * @param target The client who requested the list
-     */
-    public synchronized void whoClients(ClientHandler target){
-        String clientList = "";
-
+    public ClientHandler getClientByName(String name){
         for(ClientHandler ch : clients){
-            clientList += ch.getNickname() + " \n";
+            if(ch.getNickname().equals(name)){
+                return ch;
+            }
         }
-
-        try {
-            target.send(clientList);
-        } catch (IOException e) {
-            System.out.println(e.getMessage());
-            disconnectClient(target);
-        }
+        return null;
     }
+
+    public ClientHandler[] getClients(){
+        return (ClientHandler[]) clients.toArray(new ClientHandler[clients.size()]);
+    }
+
 
     public synchronized void disconnectAll(){
         for(ClientHandler ch : clients){
@@ -89,12 +84,12 @@ public class ChatServer {
      * TODO: even the client who sent the message??
      * @param msg
      */
-    public synchronized void broadcast(String msg){
+    public synchronized void broadcast(String msg, ClientHandler sender){
         ArrayList<ClientHandler> toDisconnect = new ArrayList<>();
 
         for(ClientHandler ch : clients){
             try {
-                ch.send(ch.getNickname() + ": " + msg);
+                ch.send(sender.getNickname() + ": " + msg);
             } catch (IOException e) {
                 e.printStackTrace();
                 toDisconnect.add(ch);
@@ -102,7 +97,29 @@ public class ChatServer {
         }
 
         for(ClientHandler ch : toDisconnect){
-            ch.disconnect();
+            disconnectClient(ch);
+        }
+
+    }
+
+    /**
+     * Used to send a server announcement to all connected clients.
+     * @param msg The message to send
+     */
+    public synchronized void announcement(String msg){
+        ArrayList<ClientHandler> toDisconnect = new ArrayList<>();
+
+        for(ClientHandler ch : clients){
+            try {
+                ch.send("[SERVER]" + msg);
+            } catch (IOException e) {
+                System.out.println("Could not send message to client " + ch.getNickname());
+                toDisconnect.add(ch);
+            }
+        }
+
+        for(ClientHandler ch : toDisconnect){
+            disconnectClient(ch);
         }
 
     }

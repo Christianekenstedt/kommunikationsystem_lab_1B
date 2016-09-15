@@ -9,4 +9,5 @@ import chatserver.ClientHandler;
  */
 public interface ICommand {
     void execute(ChatServer server, ClientHandler client, String args);
+    String getDescription();
 }

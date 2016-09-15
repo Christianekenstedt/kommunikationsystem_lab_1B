@@ -62,7 +62,11 @@ public class ClientHandler extends Thread {
         try{
             while(connected){
                 String received = in.readLine();
-                processMessage(received);
+                if(received != null)
+                    processMessage(received);
+                else{
+                    break;
+                }
             }
         }catch(Exception e){
             System.out.println("Error when receiving from client: " + getNickname());
@@ -80,7 +84,7 @@ public class ClientHandler extends Thread {
         String[] split = message.split(" ");
 
         if(message.charAt(0) == '/'){
-            if(server.getCommandManager().tryExecuteCommand(split[0], server, this, message)){
+            if(server.getCommandManager().tryExecuteCommand(split[0], server, this, message.replace(split[0],""))){
                 System.out.println("Command executed.");
             }else{
                 try{
@@ -93,7 +97,7 @@ public class ClientHandler extends Thread {
 
         }else{
             //it was a normal text
-            server.broadcast(message);
+            server.broadcast(message, this);
         }
     }
 
@@ -114,6 +118,8 @@ public class ClientHandler extends Thread {
         if(connected == false){ //To protect from circular calls.
             return;
         }
+
+        out.println("DISCONNECT"); //Tell client that we are disconnecting.
 
         try{
             if(in != null)

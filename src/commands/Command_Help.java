@@ -14,13 +14,18 @@ public class Command_Help implements ICommand {
     public void execute(ChatServer server, ClientHandler client, String args) {
         String toSend = "";
         for(String s : server.getCommandManager().getCommands()){
-            toSend += s+"\n";
+            toSend += "/" + s +"\n";
         }
         try {
             client.send(toSend);
         } catch (IOException e) {
-            System.out.println(e.getMessage());
+            System.out.println("Could not send to client.");
             server.disconnectClient(client);
         }
+    }
+
+    @Override
+    public String getDescription() {
+        return "show a list of available commands.";
     }
 }

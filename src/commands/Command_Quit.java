@@ -11,4 +11,9 @@ public class Command_Quit implements ICommand {
     public void execute(ChatServer server, ClientHandler client, String args) {
         server.disconnectClient(client);
     }
+
+    @Override
+    public String getDescription() {
+        return "disconnect from server.";
+    }
 }

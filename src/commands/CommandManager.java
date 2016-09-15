@@ -6,6 +6,7 @@ import chatserver.ClientHandler;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Manages commands registered on server
@@ -18,14 +19,14 @@ public class CommandManager {
     public CommandManager (){
         this.commands = new HashMap<>();
 
-        register(new Command_Who(), "/who");
-        register(new Command_Quit(), "/quit");
-        register(new Command_Nick(), "/nick");
-        register(new Command_Help(), "/help");
+        register(new Command_Who(), "who");
+        register(new Command_Quit(), "quit");
+        register(new Command_Nick(), "nick");
+        register(new Command_Help(), "help");
     }
 
-    public String[] getCommands(){
-        return (String[])commands.keySet().toArray();
+    public Set<String> getCommands(){
+        return commands.keySet();
     }
 
     public boolean register(ICommand cmd, String key){
@@ -40,7 +41,7 @@ public class CommandManager {
     }
 
     public boolean tryExecuteCommand(String key, ChatServer server, ClientHandler client, String args){
-        ICommand cmd = commands.get(key);
+        ICommand cmd = commands.get(key.substring(1));
         if(cmd != null){
             cmd.execute(server, client, args);
             return true;

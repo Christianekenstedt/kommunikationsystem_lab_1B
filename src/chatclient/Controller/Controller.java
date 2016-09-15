@@ -19,21 +19,43 @@ public class Controller {
 
     @FXML
     void sendBtnPressed(ActionEvent event) throws Exception {
-        if(cc == null){
-            String serverName = inputField.getText();
-            if (serverName != null) {
-                cc = new ChatClient(serverName,outputArea);
-                cc.start();
-                sendBtn.setText("Send");
-                inputField.setText("");
-                inputField.setPromptText("Type message...");
+        String input = inputField.getText();
+        if(cc!=null){
+
+            if(cc.getConnected() == false){ //Vi måste ansluta
+                if(input.length() > 3){
+                    cc.start(input);
+                }else{
+                    addMessage("Invalid hostname");
+                }
+
+            }else{                          //Vi är anslutna, skicka meddelande
+                if(input.length() > 0)
+                    cc.send(input);
 
             }
-
-        }else{
-            cc.send(inputField.getText());
         }
+        inputField.clear();
+    }
 
+
+    public void setChatClient(ChatClient cc){
+        this.cc = cc;
+    }
+
+    public void addMessage(String message){
+        outputArea.appendText(message + "\n");
+    }
+
+    public void reset(){
+        sendBtn.setText("Connect");
+        inputField.setPromptText("Address");
+    }
+
+    public void clear(){
+        outputArea.clear();
+        sendBtn.setText("Send");
+        inputField.setPromptText("Message...");
     }
 
 }

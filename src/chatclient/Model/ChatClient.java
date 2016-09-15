@@ -1,7 +1,7 @@
 package chatclient.Model;
 
-import javafx.geometry.NodeOrientation;
-import javafx.scene.Scene;
+import chatclient.Controller.Controller;
+import javafx.application.Platform;
 import javafx.scene.control.TextArea;
 
 import java.io.BufferedReader;
@@ -16,69 +16,74 @@ import java.net.UnknownHostException;
  * Created by chris on 2016-09-08.
  */
 public class ChatClient {
-    private static final int PORT_SERVER = 12345;
+    private int port;
     private String serverName;
 
     private Socket socket = null;
     private BufferedReader in = null;
     private PrintWriter out = null;
 
-    private TextArea outputArea;
-
     private boolean connected = false;
 
-    public ChatClient(String serverName,TextArea outputArea){
-        this.serverName = serverName;
-        this.outputArea = outputArea;
+    private Controller controller = null;
+
+    public ChatClient(Controller controller){
+        this.controller = controller;
     }
 
-    public void start() throws Exception {
-        if (serverName == null) System.exit(0);
+    public boolean getConnected(){
+        return connected;
+    }
+
+    public void start(String host) throws Exception {
+        String[] split = host.split(":");
+        try{
+            this.serverName = split[0];
+            this.port = Integer.parseInt(split[1]);
+        }catch (Exception e){
+            controller.addMessage("Invalid format. Usage: hostname:port");
+            return;
+        }
 
         try{
-            outputArea.setText("Connecting to "+serverName+"...\n");
-            InetAddress serverAddress = InetAddress.getByName(serverName);
-            socket = new Socket(serverAddress, PORT_SERVER);
+            controller.addMessage("Connecting to "+serverName+"...\n");
+            InetAddress serverAddress;
+            try{
+                serverAddress = InetAddress.getByName(serverName);
+            }catch(UnknownHostException uhe){
+                controller.addMessage("Could not resolve host.");
+                return;
+            }
+
+            try{
+                socket = new Socket(serverAddress, port);
+            }catch(Exception e){
+                controller.addMessage("Could not connect to: " + host);
+                return;
+            }
+
+            controller.clear();
             connected = true;
             this.out = new PrintWriter(socket.getOutputStream(),true);
             this.in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            new Thread(){
+
+            Thread t = new Thread(){
                 @Override
                 public void run(){
-                    recive();
+                    receive();
                 }
-            }.run();
+            };
+            t.start();
 
 
-        }finally {
-            try {
-                if (socket != null) {
-                    socket.close();
-                    outputArea.appendText("\n"+"Connection closed.");
-                }
 
-            } catch (Exception e) {
-                System.out.println(e);
-                outputArea.appendText("\n"+"Connection lost.");
-            }
-            try {
-                if (in != null) in.close();
-            } catch (Exception e) {
-                System.out.println(e);
-            }
-            try {
-                if (out != null) out.close();
-            }catch (Exception e){
-                System.out.println(e);
-            }
-
+        }catch(Exception e){
+            System.out.println(e.getMessage());
+            stop();
         }
     }
 
     public void send(String message) throws IOException{
-        if (message.equals("/exit")){
-            connected = false;
-        }
         try{
             this.out.println(message);
         }catch(Exception e){
@@ -86,22 +91,57 @@ public class ChatClient {
         }
     }
 
-    private void recive(){
+    private void receive(){
         try{
             while (connected){
-                String input = in.readLine();
-                printMessage(input);
+                String received = in.readLine();
+                if(received == null || received.equals("DISCONNECT")){
+                    Platform.runLater(() -> stop());
+                    break;
+                }else{
+                    Platform.runLater(() -> controller.addMessage(received));
+                }
+
             }
         }catch(IOException e){
             System.out.println(e);
-            // Stänga?
+            Platform.runLater(() -> stop());
         }
     }
 
-    private void printMessage(String message){
-        synchronized (outputArea){
-            outputArea.appendText(message);
+    public void stop(){
+        //graceful close
+        if(!connected){
+            return;
         }
 
+        if(out != null)
+            out.println("/quit");
+
+        if (socket != null) {
+            try {
+                socket.close();
+            } catch (IOException e) {
+                controller.addMessage(e.getMessage());
+            }
+
+        }
+
+        try {
+            if (in != null) in.close();
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        try {
+            if (out != null) out.close();
+        }catch (Exception e){
+            System.out.println(e.getMessage());
+        }
+
+        connected = false;
+        controller.addMessage("Disconnected from server.");
+
+
+        controller.reset();
     }
 }
